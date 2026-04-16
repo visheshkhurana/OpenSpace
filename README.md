@@ -27,8 +27,7 @@
 
 - **2026-04-16** 📊 **Evolution candidate lifecycle tracking** — skill store now records when evolution suggestions are processed (`evolution_processed_at`), cleanly distinguishing pending candidates from already-handled ones.
 - **2026-04-12** 🍎 **macOS platform hardening** — decoupled `atomacos` from core macOS imports so screenshots, window control, and recording work independently without it.
-- **2026-04-10** 🎯 **CAPTURED skills** now persist to the host agent's own skill directory instead of the default registry path.
-- **2026-04-09** ☁️ Cloud skill uploads now support **private visibility** correctly.
+- **2026-04-10** 🎯 **CAPTURED skills** now persist to the host agent's own skill directory instead of the default registry path. Cloud skill uploads now support **private visibility** correctly.
 - **2026-04-09** 💬 Multi-channel **communication gateway**. OpenSpace can now receive and respond to messages from external platforms. Ships with **WhatsApp** (Baileys bridge + QR auth) and **Feishu** (HTTP webhook) adapters, session management, attachment caching, and allowlist-based access control. See [`openspace/config/README.md`](openspace/config/README.md) for setup.
 - **2026-04-07** 🌐 OpenSpace MCP now supports standalone **SSE** and **streamable HTTP** startup, making it easier for remote hosts to connect over HTTP instead of stdio and bypass stdio-bound MCP server timeout bottlenecks. See the [host integration guide](openspace/host_skills/README.md) for setup details.
 - **2026-04-06** 🛠️ Fixed multiple runtime issues across grounding, MCP serving, skill evolution, and persistence, improving execution stability and recovery in long-running workflows.
