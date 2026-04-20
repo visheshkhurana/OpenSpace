@@ -14,7 +14,8 @@ ENV PYTHONUNBUFFERED=1 \
 
 # System deps + litestream
 RUN apt-get update && apt-get install -y --no-install-recommends \
-      git curl ca-certificates ffmpeg && \
+      git curl ca-certificates ffmpeg \
+      whois dnsutils jq tzdata uuid-runtime openssl yt-dlp && \
     curl -fsSL https://github.com/benbjohnson/litestream/releases/download/v0.3.13/litestream-v0.3.13-linux-amd64.tar.gz \
       -o /tmp/lts.tgz && \
     tar -C /usr/local/bin -xzf /tmp/lts.tgz && rm /tmp/lts.tgz && \
@@ -32,6 +33,7 @@ RUN pip install -r /opt/bot/requirements.txt
 
 # Bot code
 COPY app /opt/bot/app
+COPY host_skills /opt/bot/host_skills
 COPY litestream.yml /etc/litestream.yml
 COPY entrypoint.sh /opt/bot/entrypoint.sh
 RUN chmod +x /opt/bot/entrypoint.sh

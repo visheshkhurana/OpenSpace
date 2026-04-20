@@ -15,12 +15,22 @@ DB="$DISK_SKILL_DIR/openspace.db"
 
 # Mounted disk overlays /data at runtime, so seed host_skills here (idempotent)
 mkdir -p /data/openspace/host_skills
+# 1) OpenSpace built-in skills
 for sk in delegate-task skill-discovery; do
   if [ ! -d "/data/openspace/host_skills/$sk" ] && [ -d "/opt/openspace-src/openspace/host_skills/$sk" ]; then
     cp -r "/opt/openspace-src/openspace/host_skills/$sk" /data/openspace/host_skills/
     echo "[entrypoint] seeded host skill: $sk"
   fi
 done
+# 2) Bot-specific skills (always refresh from image so SKILL.md edits take effect on redeploy)
+if [ -d /opt/bot/host_skills ]; then
+  for sk in /opt/bot/host_skills/*/; do
+    name=$(basename "$sk")
+    rm -rf "/data/openspace/host_skills/$name"
+    cp -r "$sk" /data/openspace/host_skills/
+    echo "[entrypoint] refreshed bot skill: $name"
+  done
+fi
 
 echo "[entrypoint] restoring skill DB from Supabase if a snapshot exists..."
 litestream restore -if-replica-exists -config /etc/litestream.yml "$DB" || \
