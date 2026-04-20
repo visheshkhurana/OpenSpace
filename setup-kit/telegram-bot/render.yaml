@@ -1,0 +1,42 @@
+# Render Blueprint for the OpenSpace Telegram bot.
+# Background Worker (no public HTTP needed — long-poll Telegram).
+# Disk persists the SQLite skill DB between restarts;
+# Litestream snapshots it to Supabase for cross-device sync.
+services:
+  - type: worker
+    name: openspace-telegram-bot
+    runtime: docker
+    repo: https://github.com/visheshkhurana/OpenSpace
+    branch: setup-kit
+    rootDir: setup-kit/telegram-bot
+    dockerfilePath: ./Dockerfile
+    region: singapore
+    plan: starter
+    autoDeploy: true
+    disk:
+      name: openspace-data
+      mountPath: /data
+      sizeGB: 1
+    envVars:
+      - key: TELEGRAM_BOT_TOKEN
+        sync: false
+      - key: TELEGRAM_ALLOWED_USER_IDS
+        sync: false
+      - key: OPENAI_API_KEY
+        sync: false
+      - key: OPENSPACE_LLM_PROVIDER
+        value: openai
+      - key: OPENSPACE_LLM_MODEL
+        value: gpt-4o-mini
+      - key: SUPABASE_PROJECT_REF
+        value: fhrynagbidbznfvuoxcn
+      - key: SUPABASE_S3_REGION
+        value: ap-south-1
+      - key: SUPABASE_S3_KEY_ID
+        sync: false
+      - key: SUPABASE_S3_SECRET
+        sync: false
+      - key: DEVICE_ID
+        value: render-bot
+      - key: TTS_DEFAULT_ON
+        value: "true"

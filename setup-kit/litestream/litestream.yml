@@ -1,0 +1,28 @@
+# Litestream config for OpenSpace skill DB
+# Streams ~/OpenSpace/.openspace/openspace.db continuously to Supabase Storage.
+# Supabase Storage is S3-compatible, so we use the s3 replica type.
+#
+# Variables expected in environment (set by ../scripts/litestream_install.sh):
+#   SUPABASE_PROJECT_REF   e.g. fhrynagbidbznfvuoxcn
+#   SUPABASE_S3_REGION     e.g. ap-south-1
+#   SUPABASE_S3_KEY_ID     S3 access key from Supabase dashboard
+#   SUPABASE_S3_SECRET     S3 secret key
+#   OPENSPACE_DB_PATH      defaults to ~/OpenSpace/.openspace/openspace.db
+#   DEVICE_ID              hostname (so multiple devices don't collide)
+
+dbs:
+  - path: ${OPENSPACE_DB_PATH}
+    replicas:
+      - type: s3
+        endpoint: https://${SUPABASE_PROJECT_REF}.storage.supabase.co/storage/v1/s3
+        bucket:   openspace-db
+        path:     skills/${DEVICE_ID}
+        region:   ${SUPABASE_S3_REGION}
+        access-key-id:     ${SUPABASE_S3_KEY_ID}
+        secret-access-key: ${SUPABASE_S3_SECRET}
+        # Required for Supabase — verified via end-to-end test on 2026-04-20
+        force-path-style:  true
+        # How often to snapshot a full copy (default 24h is fine — incremental WAL ships every 10s)
+        snapshot-interval: 24h
+        # Keep 7 days of history so you can roll back bad evolutions
+        retention: 168h

@@ -1,0 +1,14 @@
+{
+  "//": "OpenClaw / nanobot auto-detect API keys from the host's own config. You only need to point them at the shared workspace + skills directory so evolution is unified with your other agents.",
+  "mcpServers": {
+    "openspace": {
+      "command": "openspace-mcp",
+      "toolTimeout": 600,
+      "env": {
+        "OPENSPACE_HOST_SKILL_DIRS": "${HOME}/.openspace/host_skills",
+        "OPENSPACE_WORKSPACE": "${HOME}/OpenSpace",
+        "OPENSPACE_API_KEY": "${OPENSPACE_API_KEY}"
+      }
+    }
+  }
+}
