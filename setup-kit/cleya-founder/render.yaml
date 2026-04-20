@@ -1,0 +1,27 @@
+# Render Blueprint: always-on, self-evolving Cleya founder agent
+services:
+  - type: worker
+    name: cleya-founder-agent
+    runtime: docker
+    repo: https://github.com/visheshkhurana/OpenSpace
+    branch: main
+    rootDir: setup-kit/cleya-founder
+    dockerfilePath: ./Dockerfile
+    region: singapore
+    plan: starter
+    autoDeploy: true
+    disk:
+      name: cleya-data
+      mountPath: /data
+      sizeGB: 1
+    envVars:
+      - key: OPENAI_API_KEY
+        sync: false
+      - key: TELEGRAM_BOT_TOKEN
+        sync: false
+      - key: HUMAN_CHAT_ID
+        value: "6224744296"
+      - key: CYCLE_INTERVAL_HOURS
+        value: "3"
+      - key: OPENSPACE_MODEL
+        value: openai/gpt-4o-mini
