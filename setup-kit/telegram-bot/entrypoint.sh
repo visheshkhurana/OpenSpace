@@ -7,6 +7,15 @@ set -e
 DB="${OPENSPACE_DB_PATH:-/data/openspace/.openspace/openspace.db}"
 mkdir -p "$(dirname "$DB")"
 
+# Mounted disk overlays /data at runtime, so seed host_skills here (idempotent)
+mkdir -p /data/openspace/host_skills
+for sk in delegate-task skill-discovery; do
+  if [ ! -d "/data/openspace/host_skills/$sk" ] && [ -d "/opt/openspace-src/openspace/host_skills/$sk" ]; then
+    cp -r "/opt/openspace-src/openspace/host_skills/$sk" /data/openspace/host_skills/
+    echo "[entrypoint] seeded host skill: $sk"
+  fi
+done
+
 echo "[entrypoint] restoring skill DB from Supabase if a snapshot exists..."
 litestream restore -if-replica-exists -config /etc/litestream.yml "$DB" || \
   echo "[entrypoint] no snapshot yet — starting fresh"

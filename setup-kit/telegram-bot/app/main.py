@@ -21,7 +21,7 @@ from telegram.ext import (
     filters,
 )
 from openai import AsyncOpenAI
-from openspace import OpenSpace
+from openspace import OpenSpace, OpenSpaceConfig
 
 # ---------- config ----------
 BOT_TOKEN     = os.environ["TELEGRAM_BOT_TOKEN"]
@@ -29,7 +29,9 @@ ALLOWED_IDS   = {int(x) for x in os.environ["TELEGRAM_ALLOWED_IDS"].split(",") i
 OPENAI_KEY    = os.environ["OPENAI_API_KEY"]
 TTS_VOICE     = os.environ.get("TTS_VOICE", "alloy")           # alloy | echo | fable | onyx | nova | shimmer
 TTS_ENABLED   = os.environ.get("TTS_ENABLED", "true").lower() == "true"
-MODEL         = os.environ.get("OPENSPACE_MODEL", "openai/gpt-4.1")
+# Default model: OpenAI via litellm provider prefix (openspace uses litellm under the hood)
+MODEL         = os.environ.get("OPENSPACE_MODEL", "openai/gpt-4o-mini")
+TTS_MODEL     = os.environ.get("TTS_MODEL", "tts-1")           # tts-1 is in every project; gpt-4o-mini-tts requires opt-in
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(name)s %(message)s")
 log = logging.getLogger("openspace-bot")
@@ -99,8 +101,9 @@ async def cmd_model(update: Update, ctx: ContextTypes.DEFAULT_TYPE):
 async def run_openspace(task: str, model: str) -> str:
     log.info("running task: %s", task[:80])
     try:
-        async with OpenSpace() as cs:
-            result = await cs.execute(task, model=model)
+        cfg = OpenSpaceConfig(llm_model=model)
+        async with OpenSpace(config=cfg) as cs:
+            result = await cs.execute(task)
             response = result.get("response") or result.get("output") or "(no response)"
             evolved = result.get("evolved_skills", [])
             if evolved:
@@ -114,7 +117,7 @@ async def synthesize_voice(text: str) -> bytes:
     # Truncate for sane voice notes — long texts get a text reply too
     snippet = text[:1500]
     resp = await openai.audio.speech.create(
-        model="gpt-4o-mini-tts",
+        model=TTS_MODEL,
         voice=TTS_VOICE,
         input=snippet,
         response_format="opus",
