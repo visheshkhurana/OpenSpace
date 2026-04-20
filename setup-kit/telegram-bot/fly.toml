@@ -1,0 +1,29 @@
+# fly.toml — OpenSpace Telegram bot
+# Tiny, always-on, free tier compatible.
+app = "openspace-bot-vishesh"
+primary_region = "bom"  # Mumbai — closest to you AND to Supabase
+
+[build]
+  dockerfile = "Dockerfile"
+
+[env]
+  DEVICE_ID = "fly-bot"
+  SUPABASE_PROJECT_REF = "fhrynagbidbznfvuoxcn"
+  SUPABASE_S3_REGION = "ap-south-1"
+  TTS_ENABLED = "true"
+  TTS_VOICE = "alloy"
+  OPENSPACE_MODEL = "openai/gpt-4.1"
+
+# Long-polling bot — no public HTTP service needed
+[processes]
+  app = "/opt/bot/entrypoint.sh"
+
+[[vm]]
+  cpu_kind = "shared"
+  cpus = 1
+  memory = "512mb"
+
+# Persistent volume — DB lives here between deploys (litestream is the off-box backup)
+[mounts]
+  source = "openspace_data"
+  destination = "/data"

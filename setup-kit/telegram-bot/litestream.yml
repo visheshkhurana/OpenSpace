@@ -1,0 +1,16 @@
+# Litestream config inside the bot container — same Supabase bucket
+# as your laptop. Per-device prefix prevents WAL conflict between bot
+# and your Mac mini.
+dbs:
+  - path: ${OPENSPACE_DB_PATH}
+    replicas:
+      - type: s3
+        endpoint: https://${SUPABASE_PROJECT_REF}.storage.supabase.co/storage/v1/s3
+        bucket:   openspace-db
+        path:     skills/${DEVICE_ID}
+        region:   ${SUPABASE_S3_REGION}
+        access-key-id:     ${SUPABASE_S3_KEY_ID}
+        secret-access-key: ${SUPABASE_S3_SECRET}
+        force-path-style:  true
+        snapshot-interval: 24h
+        retention: 168h
