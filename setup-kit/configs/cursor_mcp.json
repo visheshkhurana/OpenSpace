@@ -1,0 +1,15 @@
+{
+  "//": "Paste into Cursor → Settings → MCP → Add new MCP server (or ~/.cursor/mcp.json)",
+  "mcpServers": {
+    "openspace": {
+      "command": "openspace-mcp",
+      "toolTimeout": 600,
+      "env": {
+        "OPENSPACE_HOST_SKILL_DIRS": "${HOME}/.openspace/host_skills",
+        "OPENSPACE_WORKSPACE": "${HOME}/OpenSpace",
+        "OPENSPACE_API_KEY": "${OPENSPACE_API_KEY}",
+        "OPENAI_API_KEY": "${OPENAI_API_KEY}"
+      }
+    }
+  }
+}

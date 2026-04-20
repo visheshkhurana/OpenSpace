@@ -1,0 +1,13 @@
+{
+  "//": "Use this variant AFTER you deploy to Railway (see ../railway/). Same schema for all 4 agents — swap stdio command for the hosted endpoint so every device shares ONE skill DB in the cloud.",
+  "mcpServers": {
+    "openspace": {
+      "url": "https://openspace-<your-railway-app>.up.railway.app/mcp",
+      "transport": "streamable-http",
+      "toolTimeout": 600,
+      "headers": {
+        "Authorization": "Bearer ${OPENSPACE_API_KEY}"
+      }
+    }
+  }
+}
