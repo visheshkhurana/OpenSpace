@@ -4,8 +4,14 @@
 # 3. Run the bot
 set -e
 
-DB="${OPENSPACE_DB_PATH:-/data/openspace/.openspace/openspace.db}"
-mkdir -p "$(dirname "$DB")"
+# OpenSpace's SkillStore hardcodes db at <repo>/.openspace/openspace.db.
+# Symlink that to our persistent disk so it survives redeploys AND gets
+# replicated to Supabase by litestream.
+DISK_SKILL_DIR=/data/openspace/.openspace
+mkdir -p "$DISK_SKILL_DIR"
+rm -rf /opt/openspace-src/.openspace
+ln -s "$DISK_SKILL_DIR" /opt/openspace-src/.openspace
+DB="$DISK_SKILL_DIR/openspace.db"
 
 # Mounted disk overlays /data at runtime, so seed host_skills here (idempotent)
 mkdir -p /data/openspace/host_skills
