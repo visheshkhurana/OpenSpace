@@ -20,6 +20,8 @@ dbs:
         region:   ${SUPABASE_S3_REGION}
         access-key-id:     ${SUPABASE_S3_KEY_ID}
         secret-access-key: ${SUPABASE_S3_SECRET}
+        # Required for Supabase — verified via end-to-end test on 2026-04-20
+        force-path-style:  true
         # How often to snapshot a full copy (default 24h is fine — incremental WAL ships every 10s)
         snapshot-interval: 24h
         # Keep 7 days of history so you can roll back bad evolutions
