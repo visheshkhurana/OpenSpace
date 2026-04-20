@@ -28,7 +28,9 @@ BOT_TOKEN     = os.environ["TELEGRAM_BOT_TOKEN"]
 ALLOWED_IDS   = {int(x) for x in os.environ["TELEGRAM_ALLOWED_IDS"].split(",") if x.strip()}
 OPENAI_KEY    = os.environ["OPENAI_API_KEY"]
 TTS_VOICE     = os.environ.get("TTS_VOICE", "alloy")           # alloy | echo | fable | onyx | nova | shimmer
-TTS_ENABLED   = os.environ.get("TTS_ENABLED", "true").lower() == "true"
+# TTS off by default — your OpenAI project must explicitly enable a TTS model.
+# Flip on with /tts_on once tts-1 or gpt-4o-mini-tts is enabled in your project.
+TTS_ENABLED   = os.environ.get("TTS_ENABLED", "false").lower() == "true"
 # Default model: OpenAI via litellm provider prefix (openspace uses litellm under the hood)
 MODEL         = os.environ.get("OPENSPACE_MODEL", "openai/gpt-4o-mini")
 TTS_MODEL     = os.environ.get("TTS_MODEL", "tts-1")           # tts-1 is in every project; gpt-4o-mini-tts requires opt-in
@@ -65,7 +67,8 @@ async def cmd_skills(update: Update, ctx: ContextTypes.DEFAULT_TYPE):
     try:
         conn = sqlite3.connect(f"file:{db}?mode=ro", uri=True)
         rows = conn.execute(
-            "SELECT name, origin, datetime(created_at) FROM skill_records ORDER BY created_at DESC LIMIT 20"
+            "SELECT name, lineage_origin, datetime(first_seen) "
+            "FROM skill_records ORDER BY first_seen DESC LIMIT 20"
         ).fetchall()
         conn.close()
     except Exception as e:
