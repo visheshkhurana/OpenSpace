@@ -42,12 +42,16 @@ export function useFeed(onEvent: (event: ActivityEvent) => void, onStatus?: (con
     }
 
     const base = process.env.NEXT_PUBLIC_API_BASE ?? '';
+    const token = process.env.NEXT_PUBLIC_API_TOKEN ?? '';
     if (!base) {
       statusRef.current?.(false);
       return;
     }
     try {
-      const es = new EventSource(`${base}/feed`, { withCredentials: false });
+      const feedUrl = token
+        ? `${base}/feed?token=${encodeURIComponent(token)}`
+        : `${base}/feed`;
+      const es = new EventSource(feedUrl, { withCredentials: false });
       esRef.current = es;
 
       es.onopen = () => {
