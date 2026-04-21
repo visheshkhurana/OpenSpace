@@ -30,16 +30,20 @@ const ICONS: Record<string, React.ElementType> = {
   DataAgent: BarChart3,
 };
 
-const STATUS_COLORS = {
+const STATUS_COLORS: Record<string, { dot: string; pulse: boolean; fast: boolean }> = {
   active: { dot: '#22C55E', pulse: true, fast: false },
   idle: { dot: '#F59E0B', pulse: false, fast: false },
+  paused: { dot: '#F59E0B', pulse: false, fast: false },
+  pending: { dot: '#A1A1AA', pulse: false, fast: false },
   failed: { dot: '#EF4444', pulse: true, fast: true },
   killed: { dot: '#6B7280', pulse: false, fast: false },
+  archived: { dot: '#6B7280', pulse: false, fast: false },
 };
+const DEFAULT_STATUS = { dot: '#6B7280', pulse: false, fast: false };
 
 export function AgentNode({ agent, onClick, x = 0, y = 0 }: AgentNodeProps) {
   const Icon = ICONS[agent.name] ?? Sparkles;
-  const { dot, pulse, fast } = STATUS_COLORS[agent.status];
+  const { dot, pulse, fast } = STATUS_COLORS[agent.status] ?? DEFAULT_STATUS;
   const levelLabel = agent.level === 0 ? 'META' : `L${agent.level}`;
   const isKilled = agent.status === 'killed';
   const recentlyKilled = agent.killed_at && Date.now() - new Date(agent.killed_at).getTime() < 86_400_000;
