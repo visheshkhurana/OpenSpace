@@ -368,7 +368,8 @@ async def list_agents(
 ):
     q = supabase.table("agents").select(
         "id, level, type, status, skill_ref, goal, spawned_at, killed_at, "
-        "kill_reason, revenue_contrib_inr, tasks_done, success_rate, created_by, metadata"
+        "kill_reason, revenue_contrib_inr, tasks_done, success_rate, created_by, "
+        "metadata, parent_id, last_active_at"
     ).order("spawned_at", desc=True).limit(limit)
 
     if level is not None:
@@ -377,6 +378,10 @@ async def list_agents(
         q = q.eq("status", status)
 
     result = q.execute()
+    # Surface a UI-friendly `name` (defaults to type if no explicit name set)
+    for a in (result.data or []):
+        a["name"] = a.get("name") or a.get("type")
+        a["current_task_summary"] = (a.get("goal") or "")[:80]
     return {"agents": result.data, "total": len(result.data)}
 
 
