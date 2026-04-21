@@ -49,6 +49,25 @@ import { USE_MOCK } from './constants';
 const BASE = process.env.NEXT_PUBLIC_API_BASE ?? '';
 const TOKEN = process.env.NEXT_PUBLIC_API_TOKEN ?? '';
 
+// Backend wraps collections in {key: [...]} — unwrap common keys so UI gets bare arrays
+function unwrap<T>(data: unknown, path: string): T {
+  if (data && typeof data === 'object' && !Array.isArray(data)) {
+    const obj = data as Record<string, unknown>;
+    // If response has exactly one array-valued key, return that array
+    const keys = Object.keys(obj);
+    const arrKeys = keys.filter((k) => Array.isArray(obj[k]));
+    if (arrKeys.length === 1 && keys.length <= 3) {
+      return obj[arrKeys[0]] as T;
+    }
+    // Specific wrap for /agents/{id} which returns {agent, recent_tasks, recent_audit}
+    if (path.startsWith('/agents/') && 'agent' in obj && 'recent_tasks' in obj) {
+      const ag = obj.agent as Record<string, unknown>;
+      return { ...ag, recent_tasks: obj.recent_tasks, audit_log: obj.recent_audit ?? [], skill_preview: '' } as T;
+    }
+  }
+  return data as T;
+}
+
 async function http<T>(path: string, init?: RequestInit): Promise<T> {
   const res = await fetch(`${BASE}${path}`, {
     ...init,
@@ -61,7 +80,8 @@ async function http<T>(path: string, init?: RequestInit): Promise<T> {
   });
   if (!res.ok) throw new Error(`API ${path} → ${res.status}`);
   if (res.status === 204) return undefined as T;
-  return res.json() as Promise<T>;
+  const data = await res.json();
+  return unwrap<T>(data, path);
 }
 
 // Helper for fake latency so UI doesn't flash

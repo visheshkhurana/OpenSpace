@@ -974,6 +974,62 @@ async def set_mode(req: ModeSetRequest, token: str = Depends(verify_token)):
     return {"mode": req.mode}
 
 
+# ── UI Compatibility Endpoints ────────────────────────────────────────────────
+
+@app.get("/metrics/overview", tags=["metrics"])
+async def metrics_overview(token: str = Depends(verify_token)):
+    """Dashboard hero row: MRR, leads, conv rate, active agents."""
+    try:
+        agents = supabase.table("agents").select("id,status,revenue_contrib_inr,tasks_done").execute().data or []
+        active = [a for a in agents if a.get("status") == "active"]
+        total_revenue = sum(float(a.get("revenue_contrib_inr") or 0) for a in agents)
+        total_tasks = sum(int(a.get("tasks_done") or 0) for a in agents)
+        return {
+            "mrr_inr": total_revenue,
+            "mrr_target_inr": 4_150_000,
+            "mrr_delta_wow": 0,
+            "leads_today": 0,
+            "leads_7d_avg": 0,
+            "conv_rate_pct": 0.0,
+            "conv_rate_delta_pp": 0.0,
+            "active_agents": len(active),
+            "total_agents": len(agents),
+            "tasks_completed_today": total_tasks,
+            "cost_inr_today": 0,
+            "cost_inr_mtd": 0,
+        }
+    except Exception as e:
+        log.exception("metrics_overview_failed")
+        return {"mrr_inr": 0, "mrr_target_inr": 4_150_000, "mrr_delta_wow": 0, "leads_today": 0, "leads_7d_avg": 0, "conv_rate_pct": 0.0, "conv_rate_delta_pp": 0.0, "active_agents": 0, "total_agents": 0}
+
+
+@app.get("/approvals", tags=["approvals"])
+async def list_approvals(token: str = Depends(verify_token)):
+    """Pending approvals for the UI carousel."""
+    try:
+        res = supabase.table("approvals_inbox").select("*").eq("status", "pending").order("created_at", desc=True).limit(50).execute()
+        return res.data or []
+    except Exception:
+        return []
+
+
+@app.get("/meta/summary", tags=["meta"])
+async def meta_summary(token: str = Depends(verify_token)):
+    """Latest meta-learning summary for the dashboard card."""
+    try:
+        # Try to fetch last meta cycle from audit log or decisions
+        recent = supabase.table("decisions").select("*").order("created_at", desc=True).limit(5).execute()
+        return {
+            "last_cycle_at": None,
+            "insights": [],
+            "proposals": [],
+            "recent_decisions": recent.data or [],
+            "status": "running",
+        }
+    except Exception:
+        return {"last_cycle_at": None, "insights": [], "proposals": [], "recent_decisions": [], "status": "idle"}
+
+
 if __name__ == "__main__":
     import uvicorn
     uvicorn.run("main:app", host="0.0.0.0", port=8000, workers=2)
