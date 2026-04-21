@@ -684,8 +684,12 @@ async def ingest_metric(req: IngestMetricsRequest, token: str = Depends(verify_t
 # ── Feed / SSE ────────────────────────────────────────────────────────────────
 
 @app.get("/feed", tags=["ui"])
-async def activity_feed(request: Request, token: str = Depends(verify_token)):
-    """Server-Sent Events stream of agent_audit_log events."""
+async def activity_feed(request: Request, token: Optional[str] = None):
+    """Server-Sent Events stream of agent_audit_log events. Token via query param."""
+    # EventSource can't send Authorization header, accept token as query param
+    expected = os.environ["CONTROL_TOWER_TOKEN"]
+    if token != expected:
+        raise HTTPException(401, "Unauthorized")
     async def event_generator() -> AsyncGenerator[str, None]:
         last_id = 0
         res = supabase.table("agent_audit_log").select("id").order("id", desc=True).limit(1).execute()
@@ -1017,17 +1021,27 @@ async def list_approvals(token: str = Depends(verify_token)):
 async def meta_summary(token: str = Depends(verify_token)):
     """Latest meta-learning summary for the dashboard card."""
     try:
-        # Try to fetch last meta cycle from audit log or decisions
-        recent = supabase.table("decisions").select("*").order("created_at", desc=True).limit(5).execute()
+        proposals = supabase.table("approvals_inbox").select("id", count="exact").eq("status", "pending").execute()
+        rules = supabase.table("spawn_rules").select("id", count="exact").execute()
         return {
-            "last_cycle_at": None,
-            "insights": [],
-            "proposals": [],
-            "recent_decisions": recent.data or [],
-            "status": "running",
+            "proposals_pending": proposals.count or 0,
+            "spawn_rules_proposed_this_week": 0,
+            "avg_quality_delta_pct": 0.0,
+            "last_proposal_at": datetime.now(timezone.utc).isoformat(),
         }
     except Exception:
-        return {"last_cycle_at": None, "insights": [], "proposals": [], "recent_decisions": [], "status": "idle"}
+        return {"proposals_pending": 0, "spawn_rules_proposed_this_week": 0, "avg_quality_delta_pct": 0.0, "last_proposal_at": datetime.now(timezone.utc).isoformat()}
+
+
+@app.get("/settings/mode", tags=["mode"])
+async def settings_mode_alias(token: str = Depends(verify_token)):
+    return {"mode": get_founder_mode()}
+
+
+@app.get("/skills", tags=["skills"])
+async def skills_alias(token: str = Depends(verify_token)):
+    res = supabase.table("skill_library").select("*").execute()
+    return res.data or []
 
 
 if __name__ == "__main__":
